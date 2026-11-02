@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Como funcionam IP e MAC?</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@400;600;700&display=swap">
+<style>
+:root{--bg:#070b16;--s1:#0d1428;--s2:#141f3d;--ln:#243462;--tx:#e8edff;--mu:#93a0c6;--bl:#4c8dff;--gr:#2ee6a6;--pu:#a583ff;--mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--tx);font:400 15px/1.55 "Sora",system-ui,sans-serif;background-image:linear-gradient(rgba(76,141,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(76,141,255,.05) 1px,transparent 1px);background-size:36px 36px}
+.wrap{max-width:1180px;margin:0 auto;padding:22px 16px 56px}
+h1{font-size:clamp(1.7rem,4.4vw,2.6rem);line-height:1.1;margin:0 0 8px;letter-spacing:-.03em}
+h2{font-size:1.1rem;margin:0 0 12px}
+h3{font-size:1rem;margin:0 0 8px}
+.sub{color:var(--mu);max-width:64ch;margin:0 0 20px}
+.grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:16px;align-items:start}
+.col{display:grid;gap:16px;min-width:0}
+@media(max-width:920px){.grid{grid-template-columns:1fr}}
+.card{background:var(--s1);border:1px solid var(--ln);border-radius:14px;padding:16px}
+.full{margin-top:16px}
+#net{position:relative;height:240px}
+@media(max-width:560px){#net{height:610px}}
+#lk{position:absolute;inset:0;width:100%;height:100%}
+.l{stroke:var(--ln);stroke-width:2;stroke-dasharray:5 5;transition:stroke .4s}
+.l.d{stroke:var(--gr);stroke-dasharray:none}
+.node{position:absolute;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:14px;background:var(--s2);border:1.5px solid var(--ln);display:grid;place-items:center;color:var(--mu);transition:.35s}
+.node>svg{width:28px;height:28px}
+.node.p{border-color:var(--gr);color:var(--gr)}
+.node.c{border-color:var(--bl);color:var(--bl);box-shadow:0 0 0 4px rgba(76,141,255,.18),0 0 22px rgba(76,141,255,.45)}
+.lbl{position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);white-space:nowrap;text-align:center;font-size:12px;line-height:1.3;color:var(--tx)}
+.lbl small{display:block;font:400 10px var(--mono);color:var(--mu)}
+.v .lbl{top:50%;left:calc(100% + 12px);transform:translateY(-50%);text-align:left}
+#env{position:absolute;width:48px;margin:-21px 0 0 -24px;text-align:center;color:var(--pu);transition-property:left,top;transition-timing-function:cubic-bezier(.5,0,.2,1);pointer-events:none;z-index:3;filter:drop-shadow(0 0 8px rgba(165,131,255,.6))}
+#env svg{width:34px;height:26px;display:block;margin:0 auto}
+.tag{display:inline-block;margin-top:2px;padding:0 5px;border-radius:4px;background:var(--pu);color:#0a0620;font:500 9px/14px var(--mono)}
+.ctl{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+button{font:inherit;font-size:13px;font-weight:600;color:var(--tx);background:var(--s2);border:1px solid var(--ln);border-radius:9px;padding:9px 13px;cursor:pointer;min-height:40px}
+button:hover:not(:disabled){border-color:var(--bl)}
+button:disabled{opacity:.4;cursor:default}
+button.pri{background:var(--bl);border-color:var(--bl);color:#03112e}
+:focus-visible{outline:2px solid var(--gr);outline-offset:2px}
+.bar{height:8px;background:var(--s2);border-radius:5px;overflow:hidden;margin:14px 0 6px}
+#pb{height:100%;width:0;background:linear-gradient(90deg,var(--bl),var(--gr));transition:width .5s}
+.meta{display:flex;flex-wrap:wrap;gap:8px 18px;justify-content:space-between;align-items:center;font-size:13px;color:var(--mu)}
+input[type=range]{accent-color:var(--bl);vertical-align:middle}
+.st dl{margin:0;display:grid;grid-template-columns:140px 1fr;gap:8px 12px}
+.st dt{color:var(--mu);font-size:13px}
+.st dd{margin:0}
+@media(max-width:560px){.st dl{grid-template-columns:1fr;gap:2px}.st dd{margin-bottom:10px}}
+code{font-family:var(--mono);font-size:13px;overflow-wrap:anywhere}
+.ip{color:var(--gr)}.mc{color:var(--pu)}
+#who{margin:0 0 8px;color:var(--mu);font-size:13px}
+#who b{color:var(--tx);font-weight:600}
+.f{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:9px 6px;border-top:1px solid var(--ln)}
+.f span{color:var(--mu);font-size:12px}
+.f code{grid-column:1}
+.bd{grid-row:1/3;grid-column:2;align-self:center;font-size:11px;padding:2px 9px;border-radius:99px;border:1px solid}
+.bd.s{color:var(--gr);border-color:rgba(46,230,166,.5);background:rgba(46,230,166,.1)}
+.bd.c{color:var(--pu);border-color:rgba(165,131,255,.6);background:rgba(165,131,255,.15)}
+.bd.n{color:var(--bl);border-color:rgba(76,141,255,.6);background:rgba(76,141,255,.12)}
+.f.chg{animation:fl 1s}
+@keyframes fl{from{background:rgba(165,131,255,.3)}to{background:transparent}}
+.h{padding:8px 0;border-top:1px solid var(--ln)}
+.h:first-child{border-top:0}
+.h b{display:block;font-size:13px;font-weight:600}
+.h.cur b{color:var(--bl)}
+.h code{display:block;font-size:12px;color:var(--mu)}
+.h code.chg{color:var(--pu)}
+.tri{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:820px){.tri{grid-template-columns:1fr}}
+.tri>div{border-left:3px solid;padding:2px 0 2px 12px}
+.tri p{margin:0 0 8px;color:var(--mu);font-size:14px}
+.cr{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px}
+.cr h3{margin:0;padding-left:13px}
+.rw{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;text-align:left;width:100%;padding:12px;font-weight:400;margin-bottom:8px;background:var(--s1)}
+.rl{grid-column:1/3;color:var(--mu);font-size:12px}
+.ce{padding-left:10px;border-left:3px solid;font-size:14px}
+.dt{grid-column:1/3;display:none;background:var(--s2);border-radius:8px;padding:10px 12px;font-size:14px}
+.rw[aria-expanded=true]{border-color:var(--bl)}
+.rw[aria-expanded=true] .dt{display:block}
+.hint{color:var(--mu);font-size:13px;margin:0 0 12px}
+@media(prefers-reduced-motion:reduce){#env{transition:none!important}.f.chg{animation:none}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<symbol id="i-pc"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></symbol>
+<symbol id="i-rt"><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 16.5h.01M11 16.5h.01M8 13L6 6M16 13l2-7"/></symbol>
+<symbol id="i-sv"><rect x="4" y="3" width="16" height="7" rx="2"/><rect x="4" y="14" width="16" height="7" rx="2"/><path d="M8 6.5h.01M8 17.5h.01"/></symbol>
+</svg>
+<div class="wrap">
+<h1>Como funcionam IP e MAC?</h1>
+<p class="sub">Acompanhe uma carta digital saindo do seu computador até o Google. Os endereços são fictícios e servem só para demonstração.</p>
+<div class="grid">
+<div class="col">
+<section class="card">
+<div id="net"><svg id="lk"></svg>
+<div id="env"><svg viewBox="0 0 34 26" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="1" width="32" height="24" rx="3" fill="#141f3d"/><path d="M2 3l15 12L32 3"/></svg><span class="tag" id="tag"></span></div></div>
+<div class="ctl">
+<button id="bStart" class="pri">Iniciar simulação</button>
+<button id="bPause">Pausar</button>
+<button id="bCont">Continuar</button>
+<button id="bReset">Reiniciar</button>
+<button id="bPrev">Voltar etapa</button>
+<button id="bNext">Avançar etapa</button>
+</div>
+<div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="6" id="pbr"><div id="pb"></div></div>
+<div class="meta"><span id="pl"></span><label>Velocidade <input type="range" id="spd" min="0.5" max="3" step="0.25" value="1"> <output id="spv">1x</output></label></div>
+</section>
+<section class="card st" id="stp" aria-live="polite"></section>
+</div>
+<div class="col">
+<section class="card"><h2>Carta agora</h2><p id="who"></p><div id="now"></div></section>
+<section class="card"><h2>Por onde a carta já passou</h2><div id="hist"></div></section>
+</div>
+</div>
+
+<section class="card full">
+<h2>A analogia da carta</h2>
+<div class="tri">
+<div style="border-color:var(--gr)"><h3 class="ip">O envelope: IP</h3>
+<p>O IP de destino é o endereço final escrito no envelope. O IP de origem é o remetente, quem iniciou a conversa.</p>
+<p>Os IPs normalmente permanecem os mesmos durante o encaminhamento. Exceção comum: o NAT do roteador doméstico troca o IP privado de origem por um IP público.</p></div>
+<div style="border-color:var(--pu)"><h3 class="mc">A caixa de entrega: MAC</h3>
+<p>Os MACs só valem dentro de cada enlace, como a etiqueta da caixa que leva a carta em um trecho.</p>
+<p>A cada salto, o roteador abre a caixa, lê o envelope e cria um novo quadro com novos MACs. O MAC de destino identifica a interface do próximo salto, não a rota inteira.</p></div>
+<div style="border-color:var(--bl)"><h3 style="color:var(--bl)">Quem decide o caminho</h3>
+<p>Cada roteador olha o IP de destino e consulta a sua tabela de roteamento para descobrir o próximo salto.</p>
+<p>Só depois disso ele monta o novo quadro, com o MAC da interface desse próximo salto.</p></div>
+</div>
+</section>
+
+<section class="card full">
+<h2>IP vs MAC</h2>
+<p class="hint">Toque em uma linha para ver a analogia da carta.</p>
+<div class="cr"><h3 class="ip">IP</h3><h3 class="mc">MAC</h3></div>
+<div id="cmp"></div>
+</section>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const D=[["Computador","192.168.1.10","pc"],["Roteador doméstico","","rt"],["Roteador 1","","rt"],["Roteador 2","","rt"],["Roteador 3","","rt"],["Servidor (Google)","142.250.190.14","sv"]];
+const SRC="192.168.1.10",DST="142.250.190.14";
+const M=[["AA:AA:AA:AA:AA:AA","BB:BB:BB:BB:BB:BB"],["CC:CC:CC:CC:CC:CC","DD:DD:DD:DD:DD:DD"],["EE:EE:EE:EE:EE:EE","FF:FF:FF:FF:FF:FF"],["11:11:11:11:11:11","22:22:22:22:22:22"],["33:33:33:33:33:33","44:44:44:44:44:44"]];
+const S=[
+{t:"o computador envia a carta",w:"Você pede para abrir o Google. O computador cria um pacote com o IP do Google como destino final e o coloca em um quadro para sair pela rede local.",y:"O Google não está na sua rede local, então o computador usa como MAC de destino o do roteador de casa (o gateway), descoberto por ARP. O MAC do Google não serviria: ele só vale dentro da rede dele.",a:"O quadro viaja pelo cabo ou Wi-Fi até o roteador doméstico, que vai abri-lo para ler o IP de destino."},
+{t:"o roteador doméstico escolhe o próximo salto",w:"O roteador descarta a “caixa” anterior (MACs AA e BB, que valiam só no trecho passado) e lê o IP de destino. Pela tabela de roteamento, o próximo salto é o Roteador 1.",y:"O MAC DD é o da interface do Roteador 1, quem recebe neste trecho. Ele não descreve a rota inteira.",a:"Um novo quadro, com novos MACs, segue para o Roteador 1. Os IPs ficam iguais. Na vida real, o NAT trocaria aqui o IP de origem por um IP público; a simulação mostra o IP original para focar no MAC."},
+{t:"o Roteador 1 encaminha a carta",w:"Mesmo processo: abre o quadro, lê o IP de destino, consulta a tabela de roteamento e escolhe o Roteador 2 como próximo salto.",y:"EE é a interface de saída do Roteador 1 e FF a do Roteador 2, os dois lados deste enlace.",a:"O Roteador 1 monta um quadro novo e o envia. O envelope, com os IPs, não foi alterado."},
+{t:"o Roteador 2 encaminha a carta",w:"O Roteador 2 repete o processo: lê o IP de destino, consulta a tabela e define o Roteador 3 como próximo salto.",y:"Os MACs 11 e 22 pertencem às interfaces dos dois roteadores ligados por este enlace. Em qualquer outro trecho, valeriam outros.",a:"Outro quadro novo segue para o Roteador 3."},
+{t:"o Roteador 3 entrega no destino",w:"O Roteador 3 percebe que o servidor está em uma rede ligada diretamente a ele. O próximo salto agora é o próprio destino.",y:"No último enlace, o MAC de destino 44 é o do servidor (ou do gateway da rede dele). Só aqui o MAC aponta para o mesmo lugar que o IP de destino.",a:"O quadro chega ao servidor."},
+{t:"o servidor recebe a carta",w:"O servidor confere que o IP de destino é o seu e entrega os dados ao programa que atende o pedido. A resposta volta com origem e destino invertidos.",y:"Este é o mesmo quadro do último salto, por isso nada mudou. O MAC 44 era dele, e o IP de origem diz a quem responder.",a:"Na volta, cada roteador cria novos quadros de novo, com os IPs trocados de posição."}
+];
+const net=$("net"),env=$("env");
+D.forEach((d,i)=>{const e=document.createElement("div");e.className="node";e.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><use href="#i-${d[2]}"/></svg><div class="lbl">${d[0]}${d[1]?`<small>${d[1]}</small>`:""}</div>`;net.appendChild(e)});
+const nodes=[...net.querySelectorAll(".node")];
+let P=[],vert=false,step=0,mode="idle",timer=null;
+const spd=()=>parseFloat($("spd").value);
+function layout(){const W=net.clientWidth,H=net.clientHeight;vert=W<560;net.classList.toggle("v",vert);
+P=D.map((_,i)=>vert?{x:Math.min(110,W*.3),y:44+i*(H-110)/5}:{x:40+i*(W-80)/5,y:H*(i%2?.7:.38)});
+nodes.forEach((n,i)=>{n.style.left=P[i].x+"px";n.style.top=P[i].y+"px"});
+$("lk").innerHTML=P.slice(1).map((p,i)=>`<line class="l" id="l${i}" x1="${P[i].x}" y1="${P[i].y}" x2="${p.x}" y2="${p.y}"/>`).join("")}
+function render(){
+nodes.forEach((n,i)=>{n.classList.toggle("c",i===step);n.classList.toggle("p",i<step)});
+for(let i=0;i<5;i++)$("l"+i).classList.toggle("d",i<step);
+const o=vert?[-58,0]:[0,-52];
+env.style.left=P[step].x+o[0]+"px";env.style.top=P[step].y+o[1]+"px";
+const f=Math.min(step,4),m=M[f],pv=step>0?M[Math.min(step-1,4)]:null;
+$("tag").textContent=m[0].slice(0,2)+"→"+m[1].slice(0,2);
+$("who").innerHTML=step<5?`Quadro enviado por <b>${D[step][0]}</b> para <b>${D[step+1][0]}</b>.`:`Quadro recebido pelo <b>Servidor</b>, enviado pelo <b>Roteador 3</b>.`;
+const fl=[["IP de origem",SRC,0],["IP de destino",DST,0],["MAC de origem",m[0],1],["MAC de destino",m[1],1]];
+$("now").innerHTML=fl.map(([l,v,isM],k)=>{const ch=isM&&pv&&pv[k-2]!==v;const b=step===0?["n","criado"]:ch?["c","mudou"]:["s","igual"];
+return `<div class="f${ch?" chg":""}"><span>${l}</span><code class="${isM?"mc":"ip"}">${v}</code><i class="bd ${b[0]}" style="font-style:normal">${b[1]}</i></div>`}).join("");
+let h="";for(let j=0;j<=step;j++){const fj=Math.min(j,4),ch=j>0&&j<5;
+h+=`<div class="h${j===step?" cur":""}"><b>${j<5?D[j][0]:"Servidor (recebe)"}</b><code>IP ${SRC} → ${DST}</code><code class="${ch?"chg":""}">MAC ${M[fj][0]} → ${M[fj][1]}</code></div>`}
+$("hist").innerHTML=h;
+const s=S[step];
+$("stp").innerHTML=`<h2>Etapa ${step+1} de 6: ${s.t}</h2><dl><dt>O que acontece</dt><dd>${s.w}</dd><dt>Quem envia</dt><dd>${D[Math.min(step,4)][0]}</dd><dt>Quem recebe</dt><dd>${D[Math.min(step+1,5)][0]}</dd><dt>IP usado</dt><dd><code class="ip">${SRC} → ${DST}</code> (origem → destino)</dd><dt>MAC usado</dt><dd><code class="mc">${m[0]} → ${m[1]}</code> (origem → destino)</dd><dt>Por que esse MAC</dt><dd>${s.y}</dd><dt>Depois disso</dt><dd>${s.a}</dd></dl>`;
+$("pb").style.width=step/5*100+"%";$("pbr").setAttribute("aria-valuenow",step+1);
+$("pl").textContent=`Dispositivos atravessados: ${step+1} de 6`}
+function ui(){$("bStart").disabled=mode==="play";$("bPause").disabled=mode!=="play";$("bCont").disabled=!(mode==="pause"&&step<5);$("bPrev").disabled=step===0;$("bNext").disabled=step===5;$("bReset").disabled=mode==="idle"&&step===0}
+function go(n){env.style.transitionDuration=1400/spd()+"ms";step=n;render();ui()}
+function jump(n){env.style.transitionDuration="0ms";step=n;render()}
+function tick(){if(mode!=="play")return;go(step+1);if(step>=5){mode="done";ui();return}timer=setTimeout(tick,2600/spd())}
+function manual(n){clearTimeout(timer);if(mode!=="pause")mode="pause";go(n)}
+$("bStart").onclick=()=>{clearTimeout(timer);mode="play";jump(0);ui();timer=setTimeout(tick,900/spd())};
+$("bPause").onclick=()=>{clearTimeout(timer);mode="pause";ui()};
+$("bCont").onclick=()=>{mode="play";ui();timer=setTimeout(tick,300)};
+$("bReset").onclick=()=>{clearTimeout(timer);mode="idle";jump(0);ui()};
+$("bNext").onclick=()=>step<5&&manual(step+1);
+$("bPrev").onclick=()=>step>0&&manual(step-1);
+$("spd").oninput=()=>{$("spv").textContent=spd()+"x"};
+addEventListener("resize",()=>{layout();jump(step)});
+const R=[
+["Tipo","Endereço lógico, definido pela configuração da rede.","Endereço físico da interface de rede, gravado de fábrica.","Na carta: o IP é o endereço escrito no envelope; o MAC é a etiqueta da caixa de entrega de um trecho."],
+["O que identifica","Quem iniciou a comunicação (origem) e o destino final do pacote.","A interface que envia o quadro e a do próximo salto.","O MAC de destino não aponta o fim da viagem, só quem recebe agora."],
+["Alcance","Permite a comunicação entre redes diferentes.","Vale apenas dentro de um enlace, a mesma rede local.","Por isso o MAC do Google não serve ao seu computador: o Google não está no mesmo enlace."],
+["Durante o caminho","Normalmente permanece o mesmo no encaminhamento. Exceção: NAT.","Muda a cada salto, porque cada roteador cria um novo quadro.","Compare duas etapas seguidas na simulação: os MACs trocam, os IPs ficam."],
+["Quem decide a rota","Roteadores olham o IP de destino e consultam a tabela de roteamento.","Não escolhe rota. Só indica quem recebe o quadro neste salto.","A tabela responde “para qual vizinho eu envio?”. O MAC desse vizinho vai na nova caixa."],
+["Exemplo","142.250.190.14","AA:AA:AA:AA:AA:AA","Valores fictícios, só para demonstrar."]];
+$("cmp").innerHTML=R.map((r,k)=>`<button class="rw" aria-expanded="false" data-k="${k}"><span class="rl">${r[0]}</span><span class="ce ip" style="border-color:var(--gr);color:var(--tx)">${r[1]}</span><span class="ce mc" style="border-color:var(--pu);color:var(--tx)">${r[2]}</span><span class="dt">${r[3]}</span></button>`).join("");
+$("cmp").onclick=e=>{const b=e.target.closest(".rw");if(b)b.setAttribute("aria-expanded",b.getAttribute("aria-expanded")!=="true")};
+layout();jump(0);ui();
+</script>
+</body>
+</html>
